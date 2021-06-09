@@ -1,26 +1,8 @@
-import tkinter as tk, time, random, pygame, PIL.Image, PIL.ImageTk
-from PIL import ImageTk, Image
+import tkinter as tk, time, random, pygame
 from threading import Thread
 from tkinter import *
 from tkinter import ttk
 
-pygame.mixer.init()  
-
-"""class Nave():
-    def __init__(self, vel, vida):
-        self.vel = vel
-        self.vida = vida
-    def draw(self):#Lo que sea
-        self.naveImg = tk.PhotoImage(file = "Nave.png").subsample(1, 1) 
-        self.canvas.create_image(200, 450, image = self.naveImg)"""
-
-"""class Proyectil():
-    def __init__(self, harm, vel):
-        self.harm = harm
-        self.vel = vel
-    def impact(self):"""
-        
-# objetos: juego, nave, proyectiles 
 def about():
     mainWin.withdraw()
     aboutWin = tk.Tk()
@@ -28,8 +10,8 @@ def about():
     aboutWin.resizable(0,0)
     aboutWin.title("About")
     aboutWin.config(bg = "black")
-    goBack = tk.Button(aboutWin, command = lambda: (mainWin.deiconify(), aboutWin.withdraw()), text = "Volver", font = ("Fixedsys", 15), bg = "black", fg = "white")
-    goBack.pack(padx = 10, pady = 50)
+    btnBack = tk.Button(aboutWin, command = lambda: (mainWin.deiconify(), aboutWin.destroy()), text = "Volver", font = ("Fixedsys", 15), bg = "black", fg = "white")
+    btnBack.pack(padx = 10, pady = 50)
     pais = tk.Label(aboutWin,text = "Costa Rica", font = ("Times", 15), bg = "green", fg = "white")
     pais.pack(padx = 20, pady = 10)
     univ = tk.Label(aboutWin,text = "Instituto Tecnológico de Costa Rica", font = ("Times", 15), bg = "green", fg = "white")
@@ -53,25 +35,6 @@ def about():
     nota = tk.Label(aboutWin, text = "NOTA: ver documentación para más referencias", font = ("Times", 11), bg = "green", fg = "white")
     nota.place(x = 10, y = 600)
 
-def game():
-    pygame.mixer.stop() 
-    mainWin.withdraw()
-    gameWin = tk.Toplevel(mainWin)
-    gameWin.geometry("400x600")
-    gameWin.resizable(0,0)
-    gameWin.title("GAME!")
-    gameWin.config(bg="black")
-    goBack = tk.Button(gameWin, command = lambda: (mainWin.deiconify(), gameWin.withdraw()), text = "Volver", font = ("Fixedsys", 15), bg = "black", fg = "white")
-    goBack.pack(padx = 10, pady = 50)
-    cnv = tk.Canvas(gameWin,width=500, height= 40, borderwidth=0, highlightthickness=0, bg= "blue")
-    cnv.place(x= 0, y= 0)
-    if option.get() == 1:
-        pygame.mixer.music.load("game.wav")
-        pygame.mixer.music.play(loops = 0)
-        mainWin.after(1000, pygame.mixer.stop())
-    #nave1 = Nave()
-    #nave1.draw()
-
 def scores():
     mainWin.withdraw()
     scoresWin = tk.Toplevel()
@@ -79,10 +42,51 @@ def scores():
     scoresWin.resizable(0,0)
     scoresWin.title("Records")
     scoresWin.config(bg="black")
-    goBack = tk.Button(scoresWin, command = lambda: (mainWin.deiconify(), scoresWin.withdraw()), text = "Volver", font = ("Fixedsys", 15), bg = "black", fg = "white")
-    goBack.pack(padx = 10, pady = 50)
+    btnBack = tk.Button(scoresWin, command = lambda: (mainWin.deiconify(), scoresWin.destroy()), text = "Volver", font = ("Fixedsys", 15), bg = "black", fg = "white")
+    btnBack.pack(padx = 10, pady = 50)
 
+#Clase: Juego
+#Atributos: Nivel
+class Game():
+    def __init__(self, nivel):
+        self.nivel = nivel
     
+    def startGame(self):
+        gameWin = tk.Toplevel(mainWin)
+        gameWin.geometry("800x800")
+        gameWin.resizable(0,0)
+        gameWin.title("GAME!")
+        gameWin.config(bg="black")
+        btnBack = tk.Button(gameWin, command = lambda: (mainWin.deiconify(), gameWin.withdraw()), text = "Volver", font = ("Fixedsys", 15), bg = "black", fg = "white")
+        btnBack.place(x= 40, y = 740)
+        cnvs = tk.Canvas(gameWin,width=800, height= 700, borderwidth=0, highlightthickness=0, bg= "green")
+        cnvs.place(x= 0, y= 0)
+        playerPhoto = tk.PhotoImage(file ="player.png")
+        playerImage = cnvs.create_image(350,350,image = playerPhoto)
+        def moveRight(event):
+            if cnvs.bbox(playerImage)[2]<800:
+                cnvs.move(playerImage, 10, 0)
+        def moveLeft(event):
+             if cnvs.bbox(playerImage)[0]>0:
+                cnvs.move(playerImage, -10, 0)
+        def moveUp(event):
+             if cnvs.bbox(playerImage)[1]>0:
+                cnvs.move(playerImage, 0, -10)
+        def moveDown(event):
+             if cnvs.bbox(playerImage)[3]<700:
+                cnvs.move(playerImage, 0, 10)
+        if optLevel.get() == "Nivel 1":
+            print("a")
+        if optLevel.get() == "Nivel 2":
+            print("a")
+        if optLevel.get() == "Nivel 3":
+            print("a")
+        gameWin.bind('<Right>', moveRight)
+        gameWin.bind('<Left>', moveLeft)
+        gameWin.bind('<Up>', moveUp)
+        gameWin.bind('<Down>', moveDown)
+        gameWin.mainloop()
+
 
 mainWin = tk.Tk()
 mainWin.geometry("400x600")
@@ -107,25 +111,9 @@ optLevel.place(x=130, y = 120)
 lblLevel = tk.Label(mainWin,text="Nivel:", bg = "#424949")
 lblLevel.place(x= 70, y=120)
 
-global option
-option = IntVar()
-#option.set(1)
+game = Game(levelValue.get())
 
-def mainMusOn(option):
-    if option == 1:        
-        pygame.mixer.music.load("game.wav")
-        pygame.mixer.music.play(loops = 0)
-        mainWin.after(100, lambda: pygame.mixer.stop())
-
-def mainMusOff(option):
-    mainWin.update_idletasks()
-    if option == 0:
-        pygame.mixer.stop()
-
-musicOn = tk.Radiobutton(mainWin, text = "MUSIC ON", value = 1, variable = option, command = mainMusOn(option.get())).place(x= 50, y= 550)
-musicOff = tk.Radiobutton(mainWin, text = "MUSIC OFF", value = 0, variable = option, command = mainMusOff(option.get())).place(x= 150, y= 550)
-
-btnPlay= tk.Button(mainWin, text = "Jugar", width = "20", height = "3", bg= "#86FF45", command = game)
+btnPlay= tk.Button(mainWin, text = "Jugar", width = "20", height = "3", bg= "#86FF45", command = game.startGame)
 btnPlay.place(x=130, y=210)
 
 btnRecords= tk.Button(mainWin, text = "Mejores Puntajes", width = "20", height = "3", bg= "#86FF45", command = scores)
