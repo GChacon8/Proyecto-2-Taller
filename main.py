@@ -1,4 +1,4 @@
-import tkinter as tk, time, random, pygame
+import tkinter as tk, time, random
 from threading import Thread
 from tkinter import *
 from tkinter import ttk
@@ -44,49 +44,152 @@ def scores():
     scoresWin.config(bg="black")
     btnBack = tk.Button(scoresWin, command = lambda: (mainWin.deiconify(), scoresWin.destroy()), text = "Volver", font = ("Fixedsys", 15), bg = "black", fg = "white")
     btnBack.pack(padx = 10, pady = 50)
-
-#Clase: Juego
-#Atributos: Nivel
-class Game():
-    def __init__(self, nivel):
-        self.nivel = nivel
     
-    def startGame(self):
-        gameWin = tk.Toplevel(mainWin)
-        gameWin.geometry("800x800")
-        gameWin.resizable(0,0)
-        gameWin.title("GAME!")
-        gameWin.config(bg="black")
-        btnBack = tk.Button(gameWin, command = lambda: (mainWin.deiconify(), gameWin.withdraw()), text = "Volver", font = ("Fixedsys", 15), bg = "black", fg = "white")
-        btnBack.place(x= 40, y = 740)
-        cnvs = tk.Canvas(gameWin,width=800, height= 700, borderwidth=0, highlightthickness=0, bg= "green")
-        cnvs.place(x= 0, y= 0)
-        playerPhoto = tk.PhotoImage(file ="player.png")
-        playerImage = cnvs.create_image(350,350,image = playerPhoto)
-        def moveRight(event):
-            if cnvs.bbox(playerImage)[2]<800:
-                cnvs.move(playerImage, 10, 0)
-        def moveLeft(event):
-             if cnvs.bbox(playerImage)[0]>0:
-                cnvs.move(playerImage, -10, 0)
-        def moveUp(event):
-             if cnvs.bbox(playerImage)[1]>0:
-                cnvs.move(playerImage, 0, -10)
-        def moveDown(event):
-             if cnvs.bbox(playerImage)[3]<700:
-                cnvs.move(playerImage, 0, 10)
-        if optLevel.get() == "Nivel 1":
-            print("a")
-        if optLevel.get() == "Nivel 2":
-            print("a")
-        if optLevel.get() == "Nivel 3":
-            print("a")
-        gameWin.bind('<Right>', moveRight)
-        gameWin.bind('<Left>', moveLeft)
-        gameWin.bind('<Up>', moveUp)
-        gameWin.bind('<Down>', moveDown)
-        gameWin.mainloop()
+class Player:
+    def __init__(self, canvas):
+        self.canvas = canvas
+        self.img = tk.PhotoImage(file = "player.png").subsample(1,1)
+        self.image = canvas.create_image(100, 100, image = self.img)
+        
+    def moveRight(self, event):
+        self.coords = self.canvas.bbox(self.image)
+        self.x2 = self.coords[2]
+        if  self.x2 < 800:
+            self.canvas.move(self.image, 10, 0)
 
+    def moveLeft(self, event):
+        self.coords = self.canvas.bbox(self.image)
+        self.x1 = self.coords[0]
+        if self.x1 > 0:
+            self.canvas.move(self.image, -10, 0)
+
+    def moveUp(self, event):
+        self.coords = self.canvas.bbox(self.image)
+        self.y1 = self.coords[1]
+        if self.y1 > 0:
+            self.canvas.move(self.image, 0, -10)
+
+    def moveDown(self, event):
+        self.coords = self.canvas.bbox(self.image)
+        self.y2 = self.coords[3]
+        if self.y2 < 700:
+            self.canvas.move(self.image, 0, 10)
+       
+class Ball:
+    def __init__(self, canvas):
+        self.canvas = canvas
+        self.img = tk.PhotoImage(file = "player.png").subsample(2,2)
+        spawnPoint = random.randint(1,4)
+        if spawnPoint == 1: # arriba
+            self.image = self.canvas.create_image(400, 0, image = self.img)
+            self.speedX = random.randint(5, 10)
+            self.speedY = random.randint(5,10)
+            self.coords = self.canvas.bbox(self.image)
+            self.falling = True
+            if self.speedX > 0:
+                self.forward = True
+            else: 
+                self.forward = False
+        if spawnPoint == 2: # derecha
+            self.image = self.canvas.create_image(800, 400, image = self.img)
+            self.speedX = random.randint(5, 10)
+            self.speedY = random.randint(5, 10)
+            self.forward = False
+            if self.speedY < 0:
+                self.falling = True
+            else:
+                self.falling = False
+        if spawnPoint == 3: # abajo
+            self.image = self.canvas.create_image(400, 800, image = self.img)
+            self.speedX = random.randint(5, 10)
+            self.speedY = random.randint(5,10)
+            self.falling = False
+            if self.speedX > 0:
+                self.forward = True
+            else:
+                self.forward = False
+        if spawnPoint == 4: # izquierda
+            self.image = self.canvas.create_image(0, 400, image = self.img)
+            self.speedX = random.randint(5, 10)
+            self.speedY = random.randint(5, 10)
+            self.forward = True
+            if self.speedY > 0:
+                self.falling = True
+            else:
+                self.falling = False
+
+        self.bounce = 0
+
+        
+    def moveBall(self):
+        while self.bounce < 3:
+            self.coords = self.canvas.bbox(self.image)
+            self.x1 = self.coords[0]
+            self.y1 = self.coords[1]
+            self.x2 = self.coords[2]
+            self.y2 = self.coords[3]
+            if self.falling and self.forward: # CASO 1: derecha y abajo
+                if self.x2 < 800:
+                    self.canvas.move(self.image, self.speedX, 0)
+                if self.y2 < 700:
+                    self.canvas.move(self.image, 0, self.speedY)
+                if self.x2 >= 800:
+                    self.forward = False
+                if self.y2 >= 700:
+                    self.falling = False
+            if self.falling and not self.forward: # CASO 2: izquierda y abajo
+                if self.x1 > 0:
+                    self.canvas.move(self.image, -self.speedX, 0)
+                if self.y2 < 700:
+                    self.canvas.move(self.image, 0, self.speedY)
+                if self.x1 <= 0:
+                    self.forward = True
+                if self.y2 >= 700:
+                    self.falling = False
+            if not self.falling and self.forward: # CASO 3: derecha y arriba
+                if self.x2 < 800:
+                    self.canvas.move(self.image, self.speedX, 0)
+                if self.y1 > 0:
+                    self.canvas.move(self.image, 0, -self.speedY)
+                if self.x2 >= 800:
+                    self.forward = False
+                if self.y1 <= 0:
+                    self.falling = True
+            if not self.falling and not self.forward: # CASO 4: izquierda y arriba
+                if self.x1 > 0:
+                    self.canvas.move(self.image, -self.speedX, 0)
+                if self.y1 > 0:
+                    self.canvas.move(self.image, 0, -self.speedY)
+                if self.x1 <= 0:
+                    self.forward = True
+                if self.y1 <= 0:
+                    self.falling = True
+            time.sleep(0.1)                    
+        self.canvas.delete(self.img)
+           
+def play():
+    gameWin = tk.Toplevel(mainWin)
+    gameWin.geometry("800x800")
+    gameWin.resizable(0,0)
+    gameWin.title("GAME!")
+    gameWin.config(bg="black")
+    btnBack = tk.Button(gameWin, command = lambda: (mainWin.deiconify(), gameWin.withdraw()), text = "Volver", font = ("Fixedsys", 15), bg = "black", fg = "white")
+    btnBack.place(x= 40, y = 740)
+    cnvs = tk.Canvas(gameWin,width=800, height= 700, borderwidth=0, highlightthickness=0, bg= "green")
+    cnvs.place(x= 0, y= 0)
+
+    player = Player(cnvs)
+    ball = Ball(cnvs) 
+    
+    ballThread = Thread(target = ball.moveBall)
+    ballThread.start()
+
+    gameWin.bind('<Right>', player.moveRight)
+    gameWin.bind('<Left>', player.moveLeft)
+    gameWin.bind('<Up>', player.moveUp)
+    gameWin.bind('<Down>',player.moveDown)
+
+    gameWin.mainloop()
 
 mainWin = tk.Tk()
 mainWin.geometry("400x600")
@@ -111,9 +214,7 @@ optLevel.place(x=130, y = 120)
 lblLevel = tk.Label(mainWin,text="Nivel:", bg = "#424949")
 lblLevel.place(x= 70, y=120)
 
-game = Game(levelValue.get())
-
-btnPlay= tk.Button(mainWin, text = "Jugar", width = "20", height = "3", bg= "#86FF45", command = game.startGame)
+btnPlay= tk.Button(mainWin, text = "Jugar", width = "20", height = "3", bg= "#86FF45", command = play)
 btnPlay.place(x=130, y=210)
 
 btnRecords= tk.Button(mainWin, text = "Mejores Puntajes", width = "20", height = "3", bg= "#86FF45", command = scores)
