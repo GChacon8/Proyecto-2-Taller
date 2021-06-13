@@ -50,6 +50,7 @@ class Player:
         self.canvas = canvas
         self.img = tk.PhotoImage(file = "player.png").subsample(1,1)
         self.image = canvas.create_image(100, 100, image = self.img)
+        self.life = 60
         
     def moveRight(self, event):
         self.coords = self.canvas.bbox(self.image)
@@ -74,16 +75,32 @@ class Player:
         self.y2 = self.coords[3]
         if self.y2 < 700:
             self.canvas.move(self.image, 0, 10)
-       
+
+    def coords_get(self):
+        self.coords = self.canvas.bbox(self.image)
+        self.px1 = self.coords[0]
+        self.py1 = self.coords[1]
+        self.px2 = self.coords[2]
+        self.py2 = self.coords[3]
+        return [self.px1, self.py1, self.px2, self.py2]
+
 class Ball:
-    def __init__(self, canvas):
+    def __init__(self, canvas, level):
         self.canvas = canvas
+        self.level = level
         self.img = tk.PhotoImage(file = "player.png").subsample(2,2)
         spawnPoint = random.randint(1,4)
-        if spawnPoint == 1: # arriba
-            self.image = self.canvas.create_image(400, 0, image = self.img)
+        if self.level == 1:
             self.speedX = random.randint(5, 10)
             self.speedY = random.randint(5,10)
+        elif self.level == 2:
+            self.speedX = random.randint(10, 15)
+            self.speedY = random.randint(10,15)
+        elif self.level == 3:
+            self.speedX = random.randint(15, 20)
+            self.speedY = random.randint(15,20)
+        if spawnPoint == 1: # arriba
+            self.image = self.canvas.create_image(400, 0, image = self.img)
             self.coords = self.canvas.bbox(self.image)
             self.falling = True
             if self.speedX > 0:
@@ -92,8 +109,6 @@ class Ball:
                 self.forward = False
         if spawnPoint == 2: # derecha
             self.image = self.canvas.create_image(800, 400, image = self.img)
-            self.speedX = random.randint(5, 10)
-            self.speedY = random.randint(5, 10)
             self.forward = False
             if self.speedY < 0:
                 self.falling = True
@@ -101,8 +116,6 @@ class Ball:
                 self.falling = False
         if spawnPoint == 3: # abajo
             self.image = self.canvas.create_image(400, 800, image = self.img)
-            self.speedX = random.randint(5, 10)
-            self.speedY = random.randint(5,10)
             self.falling = False
             if self.speedX > 0:
                 self.forward = True
@@ -110,17 +123,15 @@ class Ball:
                 self.forward = False
         if spawnPoint == 4: # izquierda
             self.image = self.canvas.create_image(0, 400, image = self.img)
-            self.speedX = random.randint(5, 10)
-            self.speedY = random.randint(5, 10)
             self.forward = True
             if self.speedY > 0:
                 self.falling = True
             else:
                 self.falling = False
-
-        self.bounce = 0
-
         
+        self.bounce = 0
+        self.existencia = True
+ 
     def moveBall(self):
         while self.bounce < 3:
             self.coords = self.canvas.bbox(self.image)
@@ -135,8 +146,10 @@ class Ball:
                     self.canvas.move(self.image, 0, self.speedY)
                 if self.x2 >= 800:
                     self.forward = False
+                    self.bounce = self.bounce + 1
                 if self.y2 >= 700:
                     self.falling = False
+                    self.bounce = self.bounce + 1
             if self.falling and not self.forward: # CASO 2: izquierda y abajo
                 if self.x1 > 0:
                     self.canvas.move(self.image, -self.speedX, 0)
@@ -144,8 +157,10 @@ class Ball:
                     self.canvas.move(self.image, 0, self.speedY)
                 if self.x1 <= 0:
                     self.forward = True
+                    self.bounce = self.bounce + 1
                 if self.y2 >= 700:
                     self.falling = False
+                    self.bounce = self.bounce + 1
             if not self.falling and self.forward: # CASO 3: derecha y arriba
                 if self.x2 < 800:
                     self.canvas.move(self.image, self.speedX, 0)
@@ -153,8 +168,10 @@ class Ball:
                     self.canvas.move(self.image, 0, -self.speedY)
                 if self.x2 >= 800:
                     self.forward = False
+                    self.bounce = self.bounce + 1
                 if self.y1 <= 0:
                     self.falling = True
+                    self.bounce = self.bounce + 1
             if not self.falling and not self.forward: # CASO 4: izquierda y arriba
                 if self.x1 > 0:
                     self.canvas.move(self.image, -self.speedX, 0)
@@ -162,11 +179,56 @@ class Ball:
                     self.canvas.move(self.image, 0, -self.speedY)
                 if self.x1 <= 0:
                     self.forward = True
+                    self.bounce = self.bounce + 1
                 if self.y1 <= 0:
                     self.falling = True
+                    self.bounce = self.bounce + 1
             time.sleep(0.1)                    
-        self.canvas.delete(self.img)
-           
+        self.canvas.delete(self.image)
+        self.existencia = False
+    def impact(self):
+        while self.existencia == True:
+            global player
+            self.coords = self.canvas.bbox(self.image)
+            self.bx1 = self.coords[0]
+            self.by1 = self.coords[1]
+            self.bx2 = self.coords[2]
+            self.by2 = self.coords[3]
+            self.px1 = player.coords_get()[0]
+            self.py1 = player.coords_get()[1]
+            self.px2 = player.coords_get()[2]
+            self.py2 = player.coords_get()[3]
+            if self.px1<self.bx1<self.px2 and self.py1<self.by1<self.py2:
+                print("Caso 1 de choque")
+                time.sleep(2)
+            elif self.px1<self.bx2<self.px2 and self.py1<self.by1<self.py2:
+                print("Caso 2 de choque")
+                time.sleep(2)
+            elif self.px1<self.bx1<self.px2 and self.py1<self.by2<self.py2:
+                print("Caso 3 de choque")
+                time.sleep(2)
+            elif self.px1<self.bx2<self.px2 and self.py1<self.by2<self.py2:
+                print("Caso 4 de choque")
+                time.sleep(2)
+        
+def ballSet(canvas, level):
+    x = 0
+    while x < 10:
+        ball = Ball(canvas, level)        
+        ballThread = Thread(target = ball.moveBall)
+        ballThread.daemon = True
+        ballThread.start()      
+        ballThread1 = Thread(target = ball.impact)
+        ballThread1.daemon = True
+        ballThread1.start()
+        x += 1
+        if level == 1:
+            time.sleep(5)
+        elif level == 2:
+            time.sleep(3)
+        elif level == 3:
+            time.sleep(1)
+
 def play():
     gameWin = tk.Toplevel(mainWin)
     gameWin.geometry("800x800")
@@ -175,19 +237,38 @@ def play():
     gameWin.config(bg="black")
     btnBack = tk.Button(gameWin, command = lambda: (mainWin.deiconify(), gameWin.withdraw()), text = "Volver", font = ("Fixedsys", 15), bg = "black", fg = "white")
     btnBack.place(x= 40, y = 740)
+    
     cnvs = tk.Canvas(gameWin,width=800, height= 700, borderwidth=0, highlightthickness=0, bg= "green")
     cnvs.place(x= 0, y= 0)
 
+    global player
     player = Player(cnvs)
-    ball = Ball(cnvs) 
-    
-    ballThread = Thread(target = ball.moveBall)
-    ballThread.start()
+    player.coords_get()
+
+    """if optLevel.get() == "Nivel 1":
+        ball = Ball(cnvs, 1)
+    elif optLevel.get() == "Nivel 2":
+        ball = Ball(cnvs, 2)
+    elif optLevel.get() == "Nivel 3":
+        ball = Ball(cnvs, 3)"""
+
+    def threadBall():
+        if optLevel.get() == "Nivel 1":
+            lvl = 1
+        elif optLevel.get() == "Nivel 2":
+            lvl = 2
+        elif optLevel.get() == "Nivel 3":
+            lvl = 3
+        ballThread = Thread(target = ballSet, args = [cnvs, lvl])
+        ballThread.daemon = True
+        ballThread.start()
 
     gameWin.bind('<Right>', player.moveRight)
     gameWin.bind('<Left>', player.moveLeft)
     gameWin.bind('<Up>', player.moveUp)
     gameWin.bind('<Down>',player.moveDown)
+
+    threadBall()
 
     gameWin.mainloop()
 
