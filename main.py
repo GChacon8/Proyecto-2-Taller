@@ -37,6 +37,40 @@ def about():
     nota = tk.Label(aboutWin, text = "NOTA: ver documentación para más referencias", font = ("Times", 11), bg = "green", fg = "white")
     nota.place(x = 10, y = 600)
 
+def quicksort(data, scores):
+    if len(scores) <= 1:
+        return scores
+    else:
+        pivot = int(scores.pop())
+
+        items_higher = []
+        items_lower = []
+
+        for item in scores:
+            if int(item) > pivot:
+                items_higher.append(int(item))
+            else:
+                items_lower.append(int(item))
+        
+
+        return quicksort(data, items_lower) + [pivot] + quicksort(data, items_higher)
+
+def solo10(data, scores):
+    lista = quicksort(data, scores)
+    length = len(lista)
+    if length > 10:
+        sobro = length - 10
+        return lista[sobro:]
+    else:
+        return lista, length
+
+def compare(data):
+    ScoreFile = open("BEST SCORES.txt", "r") # genera la lista de datos leyendo cada palabra de cada línea
+    lines = ScoreFile.readlines()
+    for word in lines:
+        data.append(word.strip("\n")) # se le quita el "cambio de línea" para hacer la lista
+    return solo10(data, data[2::3])
+
 def scores():
     mainWin.withdraw()
     scoresWin = tk.Toplevel()
@@ -44,15 +78,41 @@ def scores():
     scoresWin.resizable(0,0)
     scoresWin.title("Records")
     scoresWin.config(bg="black")
-    btnBack = tk.Button(scoresWin, command = lambda: (mainWin.deiconify(), scoresWin.destroy()), text = "Volver", font = ("Fixedsys", 15), bg = "black", fg = "white")
-    btnBack.pack(padx = 10, pady = 50)
+    lenScores = compare([])[1]
+    
+    if lenScores >= 1:
+        lblScore1 = tk.Label(scoresWin, text = "Puntaje #1: " + str(compare([])[0][-1:][0]))
+        lblScore1.place(x = 160, y = 50)
+    if lenScores >= 2:
+        lblScore2 = tk.Label(scoresWin, text = "Puntaje #2: " + str(compare([])[0][-2:][0]))
+        lblScore2.place(x = 160, y = 100)
+    if lenScores >= 3:
+        lblScore3 = tk.Label(scoresWin, text = "Puntaje #3: " + str(compare([])[0][-3:][0]))
+        lblScore3.place(x = 160, y = 150)
+    if lenScores >= 4:
+        lblScore4 = tk.Label(scoresWin, text = "Puntaje #4: " + str(compare([])[0][-4:][0]))
+        lblScore4.place(x = 160, y = 200)
+    if lenScores >= 5:
+        lblScore5 = tk.Label(scoresWin, text = "Puntaje #5: " + str(compare([])[0][-5:][0]))
+        lblScore5.place(x = 160, y = 250)
+    if lenScores >= 6:
+        lblScore6 = tk.Label(scoresWin, text = "Puntaje #6: " + str(compare([])[0][-6:][0]))
+        lblScore6.place(x = 160, y = 300)
+    if lenScores >= 7:
+        lblScore7 = tk.Label(scoresWin, text = "Puntaje #7: " + str(compare([])[0][-7:][0]))
+        lblScore7.place(x = 160, y = 350)
+    if lenScores >= 8:
+        lblScore8 = tk.Label(scoresWin, text = "Puntaje #8: " + str(compare([])[0][-8:][0]))
+        lblScore8.place(x = 160, y = 400)
+    if lenScores >= 9:
+        lblScore9 = tk.Label(scoresWin, text = "Puntaje #9: " + str(compare([])[0][-9:][0]))
+        lblScore9.place(x = 160, y = 450)
+    if lenScores >= 10:
+        lblScore10 = tk.Label(scoresWin, text = "Puntaje #10: " + str(compare([])[0][-10:][0]))
+        lblScore10.place(x = 160, y = 500)
 
-def compare(data):   
-    ScoreFile = open("BEST SCORES.txt", "r") # genera la lista de datos leyendo cada palabra de cada línea
-    lines = ScoreFile.readlines()
-    for word in lines:
-        data.append(word.strip("\n")) # se le quita el "cambio de línea" para hacer la lista
-    print(data)
+    btnBack = tk.Button(scoresWin, command = lambda: (mainWin.deiconify(), scoresWin.destroy()), text = "Volver", font = ("Fixedsys", 15), bg = "black", fg = "white")
+    btnBack.place(x=170, y=560)
 
 class Player:
     def __init__(self, canvas, window, life, lblLife, score, lblScore, tiempo, lblTime):
@@ -132,15 +192,18 @@ class Player:
         self.bestScores()
 
     def bestScores(self):
-##        info = []
-##        info += [txtName.get(), optLevel.get(), self.score]
         ScoreFile = open("BEST SCORES.txt", "a")
         ScoreFile.write(str(txtName.get()) + "\n")
         ScoreFile.write(str(optLevel.get()) + "\n")
         ScoreFile.write(str(self.score) + "\n")
         ScoreFile.close()
-
-        compare([])
+        
+        """data = []
+        ScoreFile = open("BEST SCORES.txt", "r") # genera la lista de datos leyendo cada palabra de cada línea
+        lines = ScoreFile.readlines()
+        for word in lines:
+            data.append(word.strip("\n")) # se le quita el "cambio de línea" para hacer la lista
+        print(solo10(data, data[2::3]))"""
             
 class Ball:
     def __init__(self, canvas, level):
