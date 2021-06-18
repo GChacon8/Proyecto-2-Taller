@@ -7,24 +7,28 @@ from tkinter import *
 from tkinter import ttk
 from tkinter.ttk import *
 
-
+#Funcion donde se crea la ventana de "about"
 def about():
-    
+    #Creacion de ventana
     mainWin.withdraw()
     aboutWin = tk.Toplevel(mainWin)
     aboutWin.geometry("800x700")
     aboutWin.resizable(0,0)
     aboutWin.title("About")
     
+    #Creacion de canvas
     cnvsData = tk.Canvas(aboutWin, width=800, height= 750)
     cnvsData.place(x = 0, y = 0)
 
+    #Imagen de fondo
     Backimg = tk.PhotoImage(file = "about.png").subsample(1, 1)
     Backimage = cnvsData.create_image(0, 0, image = Backimg)
     
+    #Boton de volver
     btnBack = tk.Button(aboutWin, command = lambda: (mainWin.deiconify(), aboutWin.destroy()), text = "VOLVER", font = "ErasITC 15 bold italic", bg = "black", fg = "white")
     btnBack.place(x = 50, y = 650)
     
+    #Datos solicitados en las especificaciones
     pais = tk.Label(aboutWin,text = "Costa Rica", font = "ErasITC 13 bold italic", bg = "#e75719", fg = "white")  
     pais.pack(padx = 20, pady = 20)
     univ = tk.Label(aboutWin,text = "Instituto Tecnológico de Costa Rica", font = "ErasITC 12 bold italic", bg = "#e75719", fg = "white")
@@ -48,6 +52,11 @@ def about():
     
     aboutWin.mainloop()
 
+#Funcion con algoritmo de ordenamiento de la lista de puntajes
+#E: Lista de puntajes
+#S: Lista de puntajes ordenada de forma ascendente
+#R: Lista no vacia
+"""Ver la referencia en la documentacion"""
 def quicksort(data, scores):
     if len(scores) <= 1:
         return scores
@@ -65,15 +74,22 @@ def quicksort(data, scores):
         
         return quicksort(data, items_lower) + [pivot] + quicksort(data, items_higher)
 
+#Funcion para acotar la lista de puntajes a solamente los 10 mejores
+#E: Lista de puntajes
+#S: Lista de los 10 mejores puntajes ordenados de forma ascendente y el largo de la lista
 def solo10(data, scores):
     lista = quicksort(data, scores)
     length = len(lista)
     if length > 10:
         sobro = length - 10
-        return lista[sobro:]
+        return lista[sobro:] , length
     else:
         return lista, length
 
+#Funcion para leer el archivo .txt y generar una lista, sino existe el .txt muestra un label indicandole
+#E: Lista vacia y la ventana correspondiente
+#S: Lista de los 10 mejores puntajes ordenados de forma ascendente y el largo de la lista
+#R: Debe haber un archivo txt creado
 def compare(data, win):
     try:
         ScoreFile = open("BEST SCORES.txt", "r") # genera la lista de datos leyendo cada palabra de cada línea
@@ -83,32 +99,36 @@ def compare(data, win):
         return solo10(data, data[2::3])
     
     except: # no hay archivo creado
-        lblNoScores = tk.Label(win, text = "No hay puntajes aún.\n¡Juega para ser el primero!", font = "ErasITC 15 bold italic", bg = "#594c39", fg = "white")
-        lblNoScores.place(x = 50, y = 100)
+        lblNoScores = tk.Label(win, text = "No hay puntajes aún.\n¡Juega para ser el primero!", font = "Consolas 16 bold", bg = "#594c39", fg = "white")
+        lblNoScores.place(x = 30, y = 160)
         return (["No hay puntajes"], 0)
-        
+
+#Funcion donde se crea la ventana de los mejores puntajes
 def scores():
+    #Creacion de la ventana
     mainWin.withdraw()
     scoresWin = tk.Toplevel()
     scoresWin.geometry("400x600")
     scoresWin.resizable(0,0)
     scoresWin.title("Records")
     
-    cnvsScores = tk.Canvas(scoresWin, width=400, height= 600, bg= "#e75719")
-                    
+    #Creacion del canvas
+    cnvsScores = tk.Canvas(scoresWin, width=400, height= 600, bg= "#e75719")           
     cnvsScores.place(x = 0, y = 0)
 
+    #Imagen de fondo
     Scoresimg = tk.PhotoImage(file = "play.png").subsample(1, 1)
     Backimage = cnvsScores.create_image(200, 300, image = Scoresimg)
     
+    #Boton de volver
     btnBack = tk.Button(scoresWin, command = lambda: (mainWin.deiconify(), scoresWin.destroy()), text = "Volver", font = ("Fixedsys", 15), bg = "black", fg = "white")
     btnBack.place(x=30, y=560)
 
-
+    #Asignacion para no llamar varias veces a la funcion
     scores = compare([], scoresWin)
-    
     lenScores = scores[1]
-        
+    
+    #Labels para mostrar mejores puntajes
     if lenScores >= 1:
         lblScore1 = tk.Label(scoresWin, text = "1er lugar: " + str(scores[0][-1:][0]), font = "Fixedsys 17 bold", fg = "white", bg = "#594c39")
         lblScore1.pack(padx = 10, pady = 5)
@@ -142,6 +162,17 @@ def scores():
 
     scoresWin.mainloop()
 
+"""Clase: Player
+Atributos: Canvas, Window, life, score, lblScore, tiempo y lblTime
+Metodos: 
+set_lblLife: Le baja un punto de vida al player y actualiza el label
+killPlayer: Le baja la vida al jugador hasta 0
+moveRight: Recibe el evento de la respectiva flecha para mover la imagen hacia la direccion correspondiente
+moveLeft:Recibe el evento de la respectiva flecha para mover la imagen hacia la direccion correspondiente
+moveUp: Recibe el evento de la respectiva flecha para mover la imagen hacia la direccion correspondiente
+moveDown: Recibe el evento de la respectiva flecha para mover la imagen hacia la direccion correspondiente
+coords_get: Saca las coordenas de el player y retorna la lista con las 2 coordenas de X y las 2 coordenadas de Y
+updateScore: Actualiza el puntaje obtenido con su respetivo label y muestra un label si se supero a alguno de los mejores puntajes"""
 class Player:
     def __init__(self, canvas, window, life, lblLife, score, lblScore, tiempo, lblTime):
         self.canvas = canvas
@@ -162,6 +193,9 @@ class Player:
     def set_lblLife(self):
         self.life -= 1
         self.lblLife['text'] = f"VIDA: {self.life}"
+    
+    def killPlayer(self):
+        self.life = 0
         
     def moveRight(self, event):
         self.coords = self.canvas.bbox(self.image)
@@ -224,7 +258,8 @@ class Player:
 
         scores = compare([], self.canvas)
         lenScores = scores[1]
-
+        
+        #Casos para saber si se supero alguno de los mejores puntajes
         if self.score > int(scores[0][-1:][0]):
             lblScore = tk.Label(self.canvas, text = "¡Superaste al primer lugar!\nTu puntaje es: " + str(self.score), font = "Fixedsys 16 bold", bg = "#7474a9", fg = "white")
             lblScore.place(x = 100, y = 200)
@@ -258,7 +293,13 @@ class Player:
             
 pygame.mixer.init()
 ballSound = pygame.mixer.Sound("dodgeball.wav")
-            
+
+"""Clase: Ball
+Atributos: canvas, level, existencia, img, speedX, speedY, imgage y coords
+Metodos:
+moveBall: En este metodo se programo la logica del movimiento de las bolitas, ademas sirvio para contar los rebotes y poner el sonido de rebote
+impact: En este metodo se programo la logica para saber si una bolita chocaba con el player, ademas destruia la bolita si era el caso
+"""
 class Ball:
     def __init__(self, canvas, level):
         self.existencia = True
@@ -310,7 +351,8 @@ class Ball:
         self.bounce = 0 # rebotes
  
     def moveBall(self):
-        while self.bounce < 3 and self.existencia:
+        global player
+        while self.bounce < 3 and self.existencia and player.life>0:
             self.coords = self.canvas.bbox(self.image)
             self.x1 = self.coords[0]
             self.y1 = self.coords[1]
@@ -431,14 +473,17 @@ class Ball:
                 self.existencia = False
                 self.canvas.delete(self.image)
                 time.sleep(2)
+
+            time.sleep(0.1)
                 
         self.existencia = False        
         self.canvas.delete(self.image)
-     
+
+#Funcion para crear el thread de la bola y el thread que verifica el impacto de la bola, ademas regula la frencuencia de aparicion de las bolas
 def ballSet(canvas, level):
     global player
-    x = 0
-    while x < 60:
+
+    while player.life > 0  and player.tiempo < 60:
         ball = Ball(canvas, level) # crea las instancias de proyectil (bola)       
         ballThread = Thread(target = ball.moveBall) # thread para el movimiento de cada bola
         ballThread.daemon = True
@@ -448,8 +493,6 @@ def ballSet(canvas, level):
         ballThread1.daemon = True
         ballThread1.start()
 
-        x += 1
-        
         # los proyectiles aparecerán más rápido en los niveles siguientes
         if level == 1:
             time.sleep(5)
@@ -458,11 +501,13 @@ def ballSet(canvas, level):
         elif level == 3:
             time.sleep(1)
     
-        
+#Funcion de la creacion de la ventana de juego  
 def play():
+    #Se detiene el sonido
     winsound.PlaySound(None, winsound.SND_FILENAME)
     mainWin.withdraw()
 
+    #Segun el nivel se elige una cancion de fondo
     if optLevel.get() == "Nivel 1" and music.get() == "Con música":
         pygame.mixer.music.load("nivel1.wav")
         pygame.mixer.music.play()
@@ -475,46 +520,53 @@ def play():
         pygame.mixer.music.load("nivel3.wav")
         pygame.mixer.music.play()
 
-
+    #Se crea la ventana
     gameWin = tk.Toplevel(mainWin)
-    gameWin.geometry("800x800")
+    gameWin.geometry("800x760")
     gameWin.resizable(0,0)
     gameWin.title("GAME!")
+
+    #Se crea el canvas
     cnvs = tk.Canvas(gameWin,width=800, height= 700, borderwidth=0, highlightthickness=0, bg= "green")
     cnvs.place(x= 0, y= 0)
 
+    #Se pone la imagen de fondo
     Backimg = tk.PhotoImage(file = "play.png").subsample(1, 1)
     Backimage = cnvs.create_image(400, 350, image = Backimg)
 
-    def varios():
-        mainWin.deiconify()
-        gameWin.withdraw()
-        if music.get() == "Con música":
-             pygame.mixer.music.stop()
-         
-    btnBack = tk.Button(gameWin, command = varios, text = "Volver", font = ("Fixedsys", 15), bg = "black", fg = "white")
-    btnBack.place(x = 650, y = 700)
-
     global player
-    
+
     playerLife = 60
-    lblLife = tk.Label(gameWin, text = "VIDA: " + str(playerLife), font = "Fixedsys 10 bold", bg = "#e75719", fg = "white")
-    lblLife.place(x = 50, y = 700)
+    lblLife = tk.Label(gameWin, text = "VIDA: " + str(playerLife), font = "Consolas 16 bold", bg = "#e75719", fg = "white")
+    lblLife.place(x = 20, y = 720)
 
     playerScore = 0
-    lblScore = tk.Label(gameWin, text = "SCORE: " + str(playerScore), font = "Fixedsys 10 bold", bg = "#e75719", fg = "white")
-    lblScore.place(x = 150, y = 700)
+    lblScore = tk.Label(gameWin, text = "SCORE: " + str(playerScore), font = "Consolas 16 bold", bg = "#e75719", fg = "white")
+    lblScore.place(x = 150, y = 720)
 
     tiempo = 0
-    lblTime = tk.Label(gameWin, text = "TIME: " + str(tiempo), font = "Fixedsys 10 bold", bg = "#e75719", fg = "white")
-    lblTime.place(x = 300, y = 700)
+    lblTime = tk.Label(gameWin, text = "TIME: " + str(tiempo), font = "Consolas 16 bold", bg = "#e75719", fg = "white")
+    lblTime.place(x = 300, y = 720)
 
-    lblName = tk.Label(gameWin, text = "PLAYER: " + str(txtName.get()), font = "Fixedsys 10 bold", bg = "#7474a9", fg = "white")
-    lblName.place(x = 450, y = 700)
+    lblName = tk.Label(gameWin, text = "PLAYER: " + str(txtName.get()), font = "Consolas 16 bold", bg = "#7474a9", fg = "white")
+    lblName.place(x = 450, y = 720)
 
     player = Player(cnvs, gameWin, playerLife, lblLife, playerScore, lblScore, tiempo, lblTime)
     player.coords_get()
 
+    #Funcion para el boton de volver
+    def varios():
+        mainWin.deiconify()
+        gameWin.withdraw()
+        player.killPlayer()
+        if music.get() == "Con música":
+             pygame.mixer.music.stop()
+
+    #Boton de volver
+    btnBack = tk.Button(gameWin, command = varios, text = "Volver", font = ("Fixedsys", 17), bg = "black", fg = "white")
+    btnBack.place(x = 650, y = 703)
+
+    #Se crea el thread para llamar al ballset y poder crear mas threads
     def threadBall():
         if optLevel.get() == "Nivel 1":
             lvl = 1
@@ -526,71 +578,80 @@ def play():
         ballThread.daemon = True
         ballThread.start()
 
+    #Se crea el thread para llamar al updateScore
     def threadScores():
         scoresThread = Thread(target = player.updateScore)
         scoresThread.daemon = True
         scoresThread.start()
 
+    #Se establecen los eventos de movimiento para la nave, estos llaman a los metodos del jugador
     gameWin.bind('<Right>', player.moveRight)
     gameWin.bind('<Left>', player.moveLeft)
     gameWin.bind('<Up>', player.moveUp)
     gameWin.bind('<Down>',player.moveDown)
 
+    #Se llaman a las funciones que hacen los threads
     threadScores()
     threadBall()
 
     gameWin.mainloop()
 
+#Se crea la ventana principal
 mainWin = tk.Tk()
 mainWin.geometry("400x530")
 mainWin.resizable(0,0)
 mainWin.title("DODGEBALL / QUEMADOS")
 mainWin.config(bg = "#c39c76")
 
-##cnvsMain = tk.Canvas(mainWin,width=800, height= 700, borderwidth=0, highlightthickness=0, bg= "green")
-##cnvsMain.place(x= 0, y= 0)
-
+#Label del titulo
 lblTitle = tk.Label(mainWin, text="DODGEBALL", font = "Fixedsys 25 bold italic", bg = "#f29539")
 lblTitle.pack(fill = tk.X)
 
-##Mainimg = tk.PhotoImage(file = "inicio.png").subsample(1, 1)
-##Mainimage = cnvsMain.create_image(400, 350, image = Mainimg)
-
+#Entrada del nombre
 txtName = tk.Entry(mainWin)
 txtName.place(x=150, y= 60)
 
+#Label del nombre
 lblName = tk.Label(mainWin, text="NOMBRE:", font = "Fixedsys 13 bold", bg = "#f29539")
 lblName.place(x= 70, y=60)
 
+#Parte de la seleccion del nivel, se establecen valores de niveles posibles
 levelValue = StringVar(mainWin)
 levels = ['Nivel 1','Nivel 2','Nivel 3']
 levelValue.set('1')
 
+#Seleccion de nivel
 optLevel = ttk.Combobox(mainWin, values = levels, state = 'readonly')
 optLevel.current(0)
 optLevel.place(x=130, y = 120)
 
+#Label del nivel
 lblLevel = tk.Label(mainWin,text="NIVEL:", font = "Fixedsys 13 bold", bg = "#f29539")
 lblLevel.place(x= 70, y=120)
 
 music = StringVar(mainWin)
 music.set("Sin música")
 
+#Seleccion de musica on
 withMusic = Radiobutton(mainWin, text="Con música", value = "Con música", variable = music, command = lambda: winsound.PlaySound("inicio.wav", winsound.SND_ASYNC))
 withMusic.place(x = 100, y = 190)
 
+#Seleccion de musica off
 noMusic = Radiobutton(mainWin, text="Sin música", value = "Sin música", variable = music, command = lambda: winsound.PlaySound(None, winsound.SND_FILENAME))
 noMusic.place(x = 200, y = 190)
 
 if music.get() == "Sin música":
     winsound.PlaySound(None, winsound.SND_FILENAME)
 
+#Boton para jugar
 btnPlay= tk.Button(mainWin, text = "JUGAR", width = "15", height = "2", command = play, font = "Fixedsys 12 bold", bg = "black", fg = "white")
 btnPlay.place(x=130, y=250)
 
+#Boton de los mejores puntajes
 btnRecords= tk.Button(mainWin, text = "PUNTAJES", width = "15", height = "2",  font = "Fixedsys 12 bold", bg = "black", fg = "white", command = scores)
 btnRecords.place(x=130, y=350)
 
+#Boton del about
 btnAbout= tk.Button(mainWin, text = "ABOUT", width = "15", height = "2", bg = "black",  font = "Fixedsys 12 bold", fg = "white", command = about)
 btnAbout.place(x=130, y=450)
 
